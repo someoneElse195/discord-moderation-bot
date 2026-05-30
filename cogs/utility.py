@@ -56,6 +56,8 @@ class Utility(commands.Cog):
         delta = dt.timedelta(seconds=time * units)
         if delta.days > 28:
             await ctx.respond("The max timeout is 28 days", ephemeral=True)
+        elif delta.total_seconds() < 60:
+            await ctx.respond("The minimum timeout is 0 days", ephemeral=True)
         else:
             try:
                 await ctx.user.timeout_for(delta, reason="Selfmute")
