@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-from config import RED, YELLOW, LOG_ID, GUILD_ID, APPEAL_URL
+from config import RED, YELLOW, MAIN, LOG_ID, GUILD_ID, APPEAL_URL
 from cogs.logs import MODERATION
 from utils.utils import format_time, utc_now
 from utils.db_utils import insert_doc, find_docs, del_doc
@@ -101,15 +101,16 @@ class EditEmbedModal(discord.ui.Modal):
         super().__init__(title="Edit Embed")
 
         self.message = message
+        self.embed = self.message.embeds[0] if self.message.embeds else discord.Embed(colour=MAIN)
 
         self.add_item(
-            discord.ui.InputText(label="Title", required=False)
+            discord.ui.InputText(label="Title", required=False, value=self.embed.title)
         )
         self.add_item(
-            discord.ui.InputText(label="Colour", required=False)
+            discord.ui.InputText(label="Colour", required=False, value=str(self.embed.color))
         )
         self.add_item(
-            discord.ui.InputText(label="Description", required=False, style=discord.InputTextStyle.long)
+            discord.ui.InputText(label="Description", required=False, style=discord.InputTextStyle.long, value=self.embed.description)
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -122,17 +123,16 @@ class EditEmbedModal(discord.ui.Modal):
             # noinspection PyTypeChecker
             colour = await commands.ColourConverter().convert(None, colour)
 
-        em = self.message.embeds[0]
         if title:
-            em.title = title
+            self.embed.title = title
         if desc:
-            em.description = desc
+            self.embed.description = desc
         if colour:
-            em.colour = colour
+            self.embed.colour = colour
 
-        message = await self.message.edit(embed=em)
+        message = await self.message.edit(embed=self.embed)
 
-        await interaction.response.send_message(f"Edited -> {message.jump_url}", embed=em, ephemeral=True)
+        await interaction.response.send_message(f"Edited -> {message.jump_url}", embed=self.embed, ephemeral=True)
 
 
 async def reason_modal(ctx: discord.ApplicationContext, func):
@@ -546,13 +546,17 @@ class Moderation(commands.Cog):
         """
         await ctx.send_modal(OSEMmodal(channel, timestamp))
 
-    @discord.slash_command()
+    @discord.message_command(name="Edit this embed")
     @discord.default_permissions(manage_messages=True)
-    async def edit_embed(self, ctx: discord.ApplicationContext, message: discord.Message):
+    async def edit_embed_modal(self, ctx: discord.ApplicationContext, message: discord.Message):
         """
-        Alter an existing embed
+        Edit the content of an embed
         """
-        await ctx.send_modal(EditEmbedModal(message))
+        if message.author.id != self.bot.user.id:
+            await ctx.respond("The selected message must have been sent by the bot", ephemeral=True)
+        else:
+            await ctx.send_modal(EditEmbedModal(message))
+
 
     @discord.slash_command()
     @discord.default_permissions(manage_messages=True)
