@@ -44,6 +44,9 @@ Colour:
       Lime:
         id: 938912477570301952
         emoji: lime:938928064447004763
+      Mint:
+        id: FIXME
+        emoji: mint:FIXME
       Green:
         id: 938913738210291752
         emoji: green:938928064136626257
@@ -53,6 +56,9 @@ Colour:
       Teal:
         id: 938913907165253672
         emoji: teal:938928063830450267
+      Pastel blue:
+        id: FIXME
+        emoji: pastel_blue:FIXME
       Blue:
         id: 938912524521336874
         emoji: blue:938928064400863252
